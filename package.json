@@ -1,0 +1,9 @@
+{
+  "name": "style-agent-backend",
+  "version": "1.0.0",
+  "private": true,
+  "description": "图片十种风格生成 - 后端代理服务（部署到 Vercel）",
+  "engines": {
+    "node": ">=18"
+  }
+}

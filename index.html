@@ -1,0 +1,310 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>十风格底片生成器</title>
+<style>
+  :root{
+    --bg: #f2f1ec;
+    --paper: #ffffff;
+    --ink: #17181a;
+    --ink-soft: #55574f;
+    --line: #d9d7cd;
+    --safelight: #c9682f;
+    --safelight-dim: #e9d3c2;
+    --ok: #2f6f4f;
+    --err: #b3402f;
+    --mono: 'JetBrains Mono', 'SFMono-Regular', Consolas, monospace;
+    --sans: 'Noto Sans SC', 'PingFang SC', 'Microsoft YaHei', -apple-system, sans-serif;
+  }
+  *{ box-sizing:border-box; }
+  html,body{ margin:0; padding:0; background:var(--bg); color:var(--ink); font-family:var(--sans); }
+
+  .wrap{ max-width:1080px; margin:0 auto; padding:28px 20px 80px; }
+
+  .masthead{
+    display:flex; align-items:baseline; justify-content:space-between;
+    border-bottom:2px solid var(--ink); padding-bottom:14px; margin-bottom:22px;
+  }
+  .masthead h1{
+    font-size:22px; margin:0; letter-spacing:0.02em; font-weight:800;
+  }
+  .masthead .roll-count{
+    font-family:var(--mono); font-size:13px; color:var(--ink-soft);
+  }
+
+  .uploader{
+    background:var(--paper); border:1.5px dashed var(--line); border-radius:4px;
+    padding:22px; display:flex; gap:20px; align-items:center; flex-wrap:wrap;
+  }
+  .uploader.dragover{ border-color:var(--safelight); background:#fbf3ec; }
+  .thumb-slot{
+    width:96px; height:96px; border-radius:3px; background:#efeee7; border:1px solid var(--line);
+    display:flex; align-items:center; justify-content:center; overflow:hidden; flex-shrink:0;
+  }
+  .thumb-slot img{ width:100%; height:100%; object-fit:cover; }
+  .thumb-slot .placeholder{ font-size:11px; color:var(--ink-soft); text-align:center; padding:6px; font-family:var(--mono); }
+
+  .uploader-text{ flex:1; min-width:200px; }
+  .uploader-text .t1{ font-weight:700; margin-bottom:4px; }
+  .uploader-text .t2{ font-size:13px; color:var(--ink-soft); }
+
+  input[type=file]{ display:none; }
+  .btn{
+    font-family:var(--sans); font-weight:700; font-size:14px; border:none; border-radius:3px;
+    padding:11px 20px; cursor:pointer; transition:transform .08s ease, box-shadow .15s ease;
+  }
+  .btn:active{ transform:translateY(1px); }
+  .btn-primary{ background:var(--ink); color:#fff; }
+  .btn-primary:hover{ box-shadow:0 2px 0 var(--safelight); }
+  .btn-primary:disabled{ background:#a9a9a2; cursor:not-allowed; box-shadow:none; }
+  .btn-ghost{ background:transparent; color:var(--ink); border:1.5px solid var(--ink); }
+
+  .config-row{ margin-top:18px; display:flex; gap:14px; flex-wrap:wrap; align-items:center; }
+  .config-row label{ font-size:13px; color:var(--ink-soft); display:flex; align-items:center; gap:6px; }
+  .config-row input[type=number]{
+    width:56px; font-family:var(--mono); border:1px solid var(--line); border-radius:3px; padding:5px 6px;
+  }
+  .config-row input[type=text]{
+    flex:1; min-width:220px; font-family:var(--mono); font-size:12px; border:1px solid var(--line);
+    border-radius:3px; padding:8px; background:#fbfbf9;
+  }
+
+  .action-bar{ margin-top:18px; display:flex; align-items:center; gap:14px; }
+  .status{ font-family:var(--mono); font-size:13px; color:var(--ink-soft); }
+
+  .rolls{ margin-top:32px; display:flex; flex-direction:column; gap:26px; }
+
+  .roll{ background:var(--paper); border:1px solid var(--line); border-radius:4px; overflow:hidden; }
+  .roll-head{
+    display:flex; align-items:center; justify-content:space-between;
+    padding:12px 16px; border-bottom:1px solid var(--line); background:#fafaf7;
+  }
+  .roll-title{ display:flex; align-items:center; gap:10px; }
+  .roll-index{
+    font-family:var(--mono); font-size:12px; color:#fff; background:var(--ink);
+    padding:2px 7px; border-radius:2px;
+  }
+  .roll-name{ font-weight:700; font-size:15px; }
+  .roll-frame-count{ font-family:var(--mono); font-size:12px; color:var(--ink-soft); }
+
+  .sprocket-row{ display:flex; gap:6px; padding:4px 16px; background:#efeee7; }
+  .sprocket{ width:6px; height:6px; border-radius:50%; background:var(--line); }
+
+  .contact-sheet{
+    display:grid; grid-template-columns:repeat(3, 1fr); gap:1px; background:var(--ink);
+  }
+  .frame{
+    position:relative; background:#dedcd2; aspect-ratio:1/1;
+    display:flex; align-items:center; justify-content:center; overflow:hidden;
+  }
+  .frame img{ width:100%; height:100%; object-fit:cover; display:block; }
+  .frame .frame-num{
+    position:absolute; top:4px; left:4px; font-family:var(--mono); font-size:10px;
+    color:#fff; background:rgba(0,0,0,0.55); padding:1px 5px; border-radius:2px;
+  }
+  .frame .frame-download{
+    position:absolute; bottom:4px; right:4px; font-family:var(--mono); font-size:10px;
+    color:#fff; background:rgba(0,0,0,0.55); padding:2px 6px; border-radius:2px; text-decoration:none;
+    opacity:0; transition:opacity .12s ease;
+  }
+  .frame:hover .frame-download{ opacity:1; }
+  .frame.pending{ color:var(--ink-soft); font-family:var(--mono); font-size:12px; }
+  .frame.errored{ color:var(--err); font-family:var(--mono); font-size:11px; padding:8px; text-align:center; }
+
+  .empty-hint{
+    padding:60px 20px; text-align:center; color:var(--ink-soft); font-size:14px;
+  }
+
+  @media (max-width:640px){
+    .contact-sheet{ grid-template-columns:repeat(3, 1fr); }
+    .masthead h1{ font-size:18px; }
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <div class="masthead">
+    <h1>十风格底片生成器</h1>
+    <div class="roll-count" id="rollCountLabel">10 卷 · 每卷 9 帧</div>
+  </div>
+
+  <div class="uploader" id="dropZone">
+    <div class="thumb-slot" id="thumbSlot"><div class="placeholder">未选择<br/>图片</div></div>
+    <div class="uploader-text">
+      <div class="t1">上传一张照片</div>
+      <div class="t2">点击选择，或将图片拖拽到此处。支持 JPG / PNG。</div>
+    </div>
+    <input type="file" id="fileInput" accept="image/*" />
+    <button class="btn btn-ghost" id="pickBtn">选择图片</button>
+  </div>
+
+  <div class="config-row">
+    <label>后端地址
+      <input type="text" id="backendUrl" placeholder="https://your-project.vercel.app/api/generate" />
+    </label>
+  </div>
+  <div class="config-row">
+    <label>每种风格张数 <input type="number" id="nPerStyle" value="9" min="1" max="10" /></label>
+  </div>
+
+  <div class="action-bar">
+    <button class="btn btn-primary" id="generateBtn" disabled>生成 10 种风格</button>
+    <span class="status" id="statusText"></span>
+  </div>
+
+  <div class="rolls" id="rolls"></div>
+
+</div>
+
+<script>
+// ============ 10 种默认风格，可自行修改 prompt ============
+const STYLES = [
+  { name: '吉卜力手绘动画', prompt: '将这张照片转换为吉卜力工作室风格的手绘动画插画，柔和的色彩、细腻的线条、温暖的自然光影，保留人物/主体的姿态与构图。' },
+  { name: '赛博朋克霓虹', prompt: '将这张照片转换为赛博朋克风格，霓虹灯光、雨夜街景氛围、高对比度的紫色与青色光影，未来感强烈，但保留原图主体轮廓。' },
+  { name: '水彩插画', prompt: '将这张照片转换为水彩画风格，颜料晕染效果、留白、柔和笔触，纸张质感，色彩清透。' },
+  { name: '像素风', prompt: '将这张照片转换为16位像素艺术风格，色块清晰、复古游戏质感，保留主体可辨识度。' },
+  { name: '3D卡通渲染', prompt: '将这张照片转换为3D卡通渲染风格，类似皮克斯动画的圆润造型、柔和材质与灯光。' },
+  { name: '古典油画', prompt: '将这张照片转换为古典油画风格，厚涂笔触、暗色背景、伦勃朗式用光，画布纹理明显。' },
+  { name: '素描线稿', prompt: '将这张照片转换为黑白铅笔素描风格，清晰的明暗排线、手绘质感，无色彩。' },
+  { name: '复古胶片', prompt: '将这张照片转换为1970年代复古胶片摄影风格，轻微颗粒感、暖黄色调、轻微漏光效果。' },
+  { name: '极简扁平插画', prompt: '将这张照片转换为极简扁平插画风格，简化的几何形状、有限的配色、无渐变、干净的矢量感。' },
+  { name: '中国水墨画', prompt: '将这张照片转换为中国传统水墨画风格，留白、墨色浓淡变化、写意笔法，宣纸质感。' },
+];
+
+let uploadedBase64 = null;
+
+const fileInput = document.getElementById('fileInput');
+const pickBtn = document.getElementById('pickBtn');
+const dropZone = document.getElementById('dropZone');
+const thumbSlot = document.getElementById('thumbSlot');
+const generateBtn = document.getElementById('generateBtn');
+const statusText = document.getElementById('statusText');
+const rollsEl = document.getElementById('rolls');
+const backendUrlInput = document.getElementById('backendUrl');
+const nPerStyleInput = document.getElementById('nPerStyle');
+
+pickBtn.addEventListener('click', () => fileInput.click());
+dropZone.addEventListener('click', (e) => { if (e.target === dropZone) fileInput.click(); });
+
+fileInput.addEventListener('change', (e) => {
+  if (e.target.files[0]) handleFile(e.target.files[0]);
+});
+
+['dragover','dragenter'].forEach(ev => dropZone.addEventListener(ev, (e) => {
+  e.preventDefault(); dropZone.classList.add('dragover');
+}));
+['dragleave','drop'].forEach(ev => dropZone.addEventListener(ev, (e) => {
+  e.preventDefault(); dropZone.classList.remove('dragover');
+}));
+dropZone.addEventListener('drop', (e) => {
+  const file = e.dataTransfer.files[0];
+  if (file) handleFile(file);
+});
+
+function handleFile(file) {
+  const reader = new FileReader();
+  reader.onload = () => {
+    uploadedBase64 = reader.result; // data URL
+    thumbSlot.innerHTML = `<img src="${uploadedBase64}" alt="预览" />`;
+    generateBtn.disabled = false;
+  };
+  reader.readAsDataURL(file);
+}
+
+function buildEmptyRolls() {
+  rollsEl.innerHTML = '';
+  STYLES.forEach((style, i) => {
+    const n = Math.min(Math.max(Number(nPerStyleInput.value) || 9, 1), 10);
+    const roll = document.createElement('div');
+    roll.className = 'roll';
+    roll.id = `roll-${i}`;
+    roll.innerHTML = `
+      <div class="roll-head">
+        <div class="roll-title">
+          <span class="roll-index">${String(i+1).padStart(2,'0')}</span>
+          <span class="roll-name">${style.name}</span>
+        </div>
+        <span class="roll-frame-count" id="roll-status-${i}">等待中</span>
+      </div>
+      <div class="sprocket-row">${new Array(20).fill('<span class="sprocket"></span>').join('')}</div>
+      <div class="contact-sheet" id="sheet-${i}">
+        ${new Array(n).fill(0).map((_,f) => `
+          <div class="frame pending" id="frame-${i}-${f}">
+            <span class="frame-num">${String(f+1).padStart(2,'0')}/${String(n).padStart(2,'0')}</span>
+            ···
+          </div>`).join('')}
+      </div>
+    `;
+    rollsEl.appendChild(roll);
+  });
+}
+
+function setRollStatus(i, text) {
+  const el = document.getElementById(`roll-status-${i}`);
+  if (el) el.textContent = text;
+}
+
+function fillFrame(i, f, base64) {
+  const frame = document.getElementById(`frame-${i}-${f}`);
+  if (!frame) return;
+  const n = frame.parentElement.children.length;
+  frame.classList.remove('pending');
+  frame.innerHTML = `
+    <img src="data:image/png;base64,${base64}" />
+    <span class="frame-num">${String(f+1).padStart(2,'0')}/${String(n).padStart(2,'0')}</span>
+    <a class="frame-download" download="style${i+1}_frame${f+1}.png" href="data:image/png;base64,${base64}">下载</a>
+  `;
+}
+
+function errorRoll(i, msg) {
+  const sheet = document.getElementById(`sheet-${i}`);
+  sheet.innerHTML = `<div class="frame errored" style="grid-column:1/-1;aspect-ratio:auto;padding:20px;">生成失败：${msg}</div>`;
+  setRollStatus(i, '失败');
+}
+
+generateBtn.addEventListener('click', async () => {
+  if (!uploadedBase64) return;
+  const backendUrl = backendUrlInput.value.trim();
+  if (!backendUrl) {
+    alert('请先填写后端地址（部署好的 /api/generate 接口地址）');
+    return;
+  }
+  const n = Math.min(Math.max(Number(nPerStyleInput.value) || 9, 1), 10);
+
+  generateBtn.disabled = true;
+  statusText.textContent = '正在生成，10 种风格 × ' + n + ' 张，请耐心等待（可能需要几分钟）...';
+  buildEmptyRolls();
+  STYLES.forEach((_, i) => setRollStatus(i, '生成中...'));
+
+  try {
+    const resp = await fetch(backendUrl, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ imageBase64: uploadedBase64, styles: STYLES, n }),
+    });
+    if (!resp.ok) {
+      const t = await resp.text();
+      throw new Error(t.slice(0, 200));
+    }
+    const data = await resp.json();
+    data.results.forEach((r, i) => {
+      if (r.error) {
+        errorRoll(i, r.error);
+        return;
+      }
+      r.images.forEach((b64, f) => fillFrame(i, f, b64));
+      setRollStatus(i, `完成 · ${r.images.length} 帧`);
+    });
+    statusText.textContent = '全部完成。';
+  } catch (err) {
+    statusText.textContent = '请求失败：' + err.message;
+  } finally {
+    generateBtn.disabled = false;
+  }
+});
+</script>
+</body>
+</html>
