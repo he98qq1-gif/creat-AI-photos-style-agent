@@ -3,123 +3,186 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>十风格底片生成器</title>
+<title>LEO AI PHOTOS</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,500;0,700;1,500&family=Noto+Serif+SC:wght@500;700&family=Cormorant+Garamond:wght@500;600&display=swap" rel="stylesheet">
 <style>
   :root{
-    --bg: #f2f1ec;
-    --paper: #ffffff;
-    --ink: #17181a;
-    --ink-soft: #55574f;
-    --line: #d9d7cd;
-    --safelight: #c9682f;
-    --safelight-dim: #e9d3c2;
-    --ok: #2f6f4f;
-    --err: #b3402f;
+    --bg: #0b0b0a;
+    --paper: #16140f;
+    --paper-raised: #1c1a14;
+    --ink: #f2e9d8;
+    --ink-soft: #a8977a;
+    --line: #3c3422;
+    --gold: #c9a24b;
+    --gold-bright: #e8c877;
+    --gold-dim: #55491f;
+    --ok: #8a9a5c;
+    --err: #c0654a;
     --mono: 'JetBrains Mono', 'SFMono-Regular', Consolas, monospace;
-    --sans: 'Noto Sans SC', 'PingFang SC', 'Microsoft YaHei', -apple-system, sans-serif;
+    --serif: 'Playfair Display', 'Noto Serif SC', Georgia, serif;
+    --serif-cn: 'Noto Serif SC', 'Playfair Display', Georgia, serif;
+    --sans: 'Cormorant Garamond', 'Noto Serif SC', 'PingFang SC', serif;
   }
   *{ box-sizing:border-box; }
   html,body{ margin:0; padding:0; background:var(--bg); color:var(--ink); font-family:var(--sans); }
+  body{
+    background-image:
+      radial-gradient(ellipse at top, rgba(201,162,75,0.06), transparent 60%),
+      linear-gradient(var(--bg), var(--bg));
+  }
 
-  .wrap{ max-width:1080px; margin:0 auto; padding:28px 20px 80px; }
+  .wrap{ max-width:1080px; margin:0 auto; padding:40px 24px 100px; }
 
   .masthead{
-    display:flex; align-items:baseline; justify-content:space-between;
-    border-bottom:2px solid var(--ink); padding-bottom:14px; margin-bottom:22px;
+    display:flex; align-items:flex-end; justify-content:space-between;
+    border-bottom:1px solid var(--gold-dim); padding-bottom:20px; margin-bottom:34px;
+    position:relative;
   }
+  .masthead::after{
+    content:''; position:absolute; left:0; right:0; bottom:-4px; height:1px;
+    background:var(--gold-dim);
+  }
+  .masthead-title{ display:flex; flex-direction:column; gap:6px; }
   .masthead h1{
-    font-size:22px; margin:0; letter-spacing:0.02em; font-weight:800;
+    font-family:var(--serif-cn); font-size:30px; margin:0; letter-spacing:0.14em; font-weight:700;
+    color:var(--gold-bright); text-transform:uppercase;
+  }
+  .masthead .subtitle{
+    font-size:12px; color:var(--ink-soft); font-family:var(--sans); font-style:italic;
+    letter-spacing:0.04em;
   }
   .masthead .roll-count{
-    font-family:var(--mono); font-size:13px; color:var(--ink-soft);
+    font-family:var(--mono); font-size:12px; color:var(--gold); letter-spacing:0.08em;
   }
+  .masthead-right{ display:flex; flex-direction:column; align-items:flex-end; gap:10px; }
+  .lang-switch{ display:flex; gap:4px; }
+  .lang-switch button{
+    font-family:var(--mono); font-size:11px; letter-spacing:0.04em; padding:4px 9px;
+    background:transparent; border:1px solid var(--gold-dim); color:var(--ink-soft);
+    cursor:pointer; border-radius:1px; transition:all .12s ease;
+  }
+  .lang-switch button:hover{ border-color:var(--gold); color:var(--ink); }
+  .lang-switch button.active{ background:var(--gold); border-color:var(--gold); color:#181410; font-weight:700; }
 
   .uploader{
-    background:var(--paper); border:1.5px dashed var(--line); border-radius:4px;
-    padding:22px; display:flex; gap:20px; align-items:center; flex-wrap:wrap;
+    background:var(--paper); border:1px solid var(--gold-dim); border-radius:2px;
+    padding:26px; display:flex; gap:22px; align-items:center; flex-wrap:wrap;
+    position:relative;
   }
-  .uploader.dragover{ border-color:var(--safelight); background:#fbf3ec; }
+  .uploader.dragover{ border-color:var(--gold); background:var(--paper-raised); }
   .thumb-slot{
-    width:96px; height:96px; border-radius:3px; background:#efeee7; border:1px solid var(--line);
+    width:100px; height:100px; border-radius:1px; background:#0e0d0a; border:1px solid var(--gold-dim);
     display:flex; align-items:center; justify-content:center; overflow:hidden; flex-shrink:0;
   }
   .thumb-slot img{ width:100%; height:100%; object-fit:cover; }
-  .thumb-slot .placeholder{ font-size:11px; color:var(--ink-soft); text-align:center; padding:6px; font-family:var(--mono); }
+  .thumb-slot .placeholder{ font-size:11px; color:var(--ink-soft); text-align:center; padding:6px; font-family:var(--sans); font-style:italic; }
 
   .uploader-text{ flex:1; min-width:200px; }
-  .uploader-text .t1{ font-weight:700; margin-bottom:4px; }
+  .uploader-text .t1{ font-family:var(--serif-cn); font-weight:700; margin-bottom:4px; font-size:16px; letter-spacing:0.03em; }
   .uploader-text .t2{ font-size:13px; color:var(--ink-soft); }
 
   input[type=file]{ display:none; }
   .btn{
-    font-family:var(--sans); font-weight:700; font-size:14px; border:none; border-radius:3px;
-    padding:11px 20px; cursor:pointer; transition:transform .08s ease, box-shadow .15s ease;
+    font-family:var(--sans); font-weight:600; font-size:14px; border:1px solid var(--gold);
+    border-radius:1px; padding:11px 24px; cursor:pointer; transition:all .15s ease;
+    letter-spacing:0.08em; text-transform:uppercase;
   }
   .btn:active{ transform:translateY(1px); }
-  .btn-primary{ background:var(--ink); color:#fff; }
-  .btn-primary:hover{ box-shadow:0 2px 0 var(--safelight); }
-  .btn-primary:disabled{ background:#a9a9a2; cursor:not-allowed; box-shadow:none; }
-  .btn-ghost{ background:transparent; color:var(--ink); border:1.5px solid var(--ink); }
+  .btn-primary{ background:var(--gold); color:#181410; }
+  .btn-primary:hover{ background:var(--gold-bright); box-shadow:0 0 0 1px var(--gold-bright); }
+  .btn-primary:disabled{ background:transparent; color:var(--ink-soft); border-color:var(--line); cursor:not-allowed; box-shadow:none; }
+  .btn-ghost{ background:transparent; color:var(--gold); border:1px solid var(--gold-dim); }
+  .btn-ghost:hover{ border-color:var(--gold); }
 
-  .config-row{ margin-top:18px; display:flex; gap:14px; flex-wrap:wrap; align-items:center; }
-  .config-row label{ font-size:13px; color:var(--ink-soft); display:flex; align-items:center; gap:6px; }
+  .style-picker{
+    margin-top:22px; border:1px solid var(--gold-dim); border-radius:2px; background:var(--paper);
+    padding:18px 20px;
+  }
+  .style-picker-head{
+    display:flex; align-items:center; justify-content:space-between; margin-bottom:12px;
+  }
+  .style-picker-head .label{
+    font-family:var(--serif-cn); font-weight:700; font-size:14px; letter-spacing:0.06em;
+    color:var(--gold-bright);
+  }
+  .style-picker-head .toggle-all{
+    font-size:11px; color:var(--gold); background:none; border:none; cursor:pointer;
+    font-family:var(--mono); text-decoration:underline; letter-spacing:0.04em;
+  }
+  .style-grid{
+    display:grid; grid-template-columns:repeat(auto-fill, minmax(150px, 1fr)); gap:9px;
+  }
+  .style-item{
+    display:flex; align-items:center; gap:8px; font-size:13px; padding:8px 10px;
+    border:1px solid var(--line); border-radius:1px; cursor:pointer; user-select:none;
+    color:var(--ink-soft); transition:all .12s ease;
+  }
+  .style-item input{ accent-color:var(--gold); width:15px; height:15px; flex-shrink:0; }
+  .style-item.checked{ background:var(--paper-raised); border-color:var(--gold); color:var(--ink); }
+
+  .config-row{ margin-top:20px; display:flex; gap:16px; flex-wrap:wrap; align-items:center; }
+  .config-row label{ font-size:13px; color:var(--ink-soft); display:flex; align-items:center; gap:8px; }
   .config-row input[type=number]{
-    width:56px; font-family:var(--mono); border:1px solid var(--line); border-radius:3px; padding:5px 6px;
+    width:56px; font-family:var(--mono); border:1px solid var(--gold-dim); border-radius:1px; padding:6px 7px;
+    background:var(--paper); color:var(--ink);
   }
   .config-row input[type=text]{
-    flex:1; min-width:220px; font-family:var(--mono); font-size:12px; border:1px solid var(--line);
-    border-radius:3px; padding:8px; background:#fbfbf9;
+    flex:1; min-width:220px; font-family:var(--mono); font-size:12px; border:1px solid var(--gold-dim);
+    border-radius:1px; padding:9px; background:var(--paper); color:var(--ink);
   }
 
-  .action-bar{ margin-top:18px; display:flex; align-items:center; gap:14px; }
-  .status{ font-family:var(--mono); font-size:13px; color:var(--ink-soft); }
+  .action-bar{ margin-top:22px; display:flex; align-items:center; gap:16px; }
+  .status{ font-family:var(--mono); font-size:12px; color:var(--ink-soft); letter-spacing:0.02em; }
 
-  .rolls{ margin-top:32px; display:flex; flex-direction:column; gap:26px; }
+  .rolls{ margin-top:38px; display:flex; flex-direction:column; gap:30px; }
 
-  .roll{ background:var(--paper); border:1px solid var(--line); border-radius:4px; overflow:hidden; }
+  .roll{ background:var(--paper); border:1px solid var(--gold-dim); border-radius:2px; overflow:hidden; }
   .roll-head{
     display:flex; align-items:center; justify-content:space-between;
-    padding:12px 16px; border-bottom:1px solid var(--line); background:#fafaf7;
+    padding:14px 18px; border-bottom:1px solid var(--gold-dim); background:var(--paper-raised);
   }
-  .roll-title{ display:flex; align-items:center; gap:10px; }
+  .roll-title{ display:flex; align-items:center; gap:12px; }
   .roll-index{
-    font-family:var(--mono); font-size:12px; color:#fff; background:var(--ink);
-    padding:2px 7px; border-radius:2px;
+    font-family:var(--serif); font-size:13px; color:var(--gold-bright); border:1px solid var(--gold);
+    padding:2px 9px; border-radius:50%; letter-spacing:0.02em;
   }
-  .roll-name{ font-weight:700; font-size:15px; }
-  .roll-frame-count{ font-family:var(--mono); font-size:12px; color:var(--ink-soft); }
+  .roll-name{ font-family:var(--serif-cn); font-weight:700; font-size:16px; letter-spacing:0.03em; }
+  .roll-frame-count{ font-family:var(--mono); font-size:11px; color:var(--ink-soft); letter-spacing:0.04em; }
 
-  .sprocket-row{ display:flex; gap:6px; padding:4px 16px; background:#efeee7; }
-  .sprocket{ width:6px; height:6px; border-radius:50%; background:var(--line); }
+  .sprocket-row{ display:flex; gap:8px; padding:6px 18px; background:var(--bg); align-items:center; }
+  .sprocket{ width:3px; height:3px; border-radius:50%; background:var(--gold-dim); }
 
   .contact-sheet{
-    display:grid; grid-template-columns:repeat(3, 1fr); gap:1px; background:var(--ink);
+    display:grid; grid-template-columns:repeat(3, 1fr); gap:1px; background:var(--gold-dim);
   }
   .frame{
-    position:relative; background:#dedcd2; aspect-ratio:1/1;
+    position:relative; background:#0e0d0a; aspect-ratio:1/1;
     display:flex; align-items:center; justify-content:center; overflow:hidden;
   }
   .frame img{ width:100%; height:100%; object-fit:cover; display:block; }
   .frame .frame-num{
-    position:absolute; top:4px; left:4px; font-family:var(--mono); font-size:10px;
-    color:#fff; background:rgba(0,0,0,0.55); padding:1px 5px; border-radius:2px;
+    position:absolute; top:5px; left:5px; font-family:var(--mono); font-size:10px;
+    color:var(--gold-bright); background:rgba(11,11,10,0.72); padding:1px 6px; border-radius:1px;
+    letter-spacing:0.03em;
   }
   .frame .frame-download{
-    position:absolute; bottom:4px; right:4px; font-family:var(--mono); font-size:10px;
-    color:#fff; background:rgba(0,0,0,0.55); padding:2px 6px; border-radius:2px; text-decoration:none;
-    opacity:0; transition:opacity .12s ease;
+    position:absolute; bottom:5px; right:5px; font-family:var(--sans); font-size:11px;
+    color:#181410; background:var(--gold); padding:2px 8px; border-radius:1px; text-decoration:none;
+    opacity:0; transition:opacity .12s ease; letter-spacing:0.05em;
   }
   .frame:hover .frame-download{ opacity:1; }
   .frame.pending{ color:var(--ink-soft); font-family:var(--mono); font-size:12px; }
   .frame.errored{ color:var(--err); font-family:var(--mono); font-size:11px; padding:8px; text-align:center; }
 
   .empty-hint{
-    padding:60px 20px; text-align:center; color:var(--ink-soft); font-size:14px;
+    padding:60px 20px; text-align:center; color:var(--ink-soft); font-size:14px; font-style:italic;
   }
 
   @media (max-width:640px){
     .contact-sheet{ grid-template-columns:repeat(3, 1fr); }
-    .masthead h1{ font-size:18px; }
+    .masthead h1{ font-size:22px; }
   }
 </style>
 </head>
@@ -127,31 +190,50 @@
 <div class="wrap">
 
   <div class="masthead">
-    <h1>十风格底片生成器</h1>
-    <div class="roll-count" id="rollCountLabel">10 卷 · 每卷 9 帧</div>
+    <div class="masthead-title">
+      <h1>LEO AI PHOTOS</h1>
+      <div class="subtitle" id="subtitleText">LEO 图片设计 · 一键生成十种艺术风格</div>
+    </div>
+    <div class="masthead-right">
+      <div class="lang-switch" id="langSwitch">
+        <button type="button" data-lang="zh">中文</button>
+        <button type="button" data-lang="en">EN</button>
+        <button type="button" data-lang="vi">VI</button>
+        <button type="button" data-lang="id">ID</button>
+      </div>
+      <div class="roll-count" id="rollCountLabel">10 卷 · 每卷 9 帧</div>
+    </div>
   </div>
 
   <div class="uploader" id="dropZone">
-    <div class="thumb-slot" id="thumbSlot"><div class="placeholder">未选择<br/>图片</div></div>
+    <div class="thumb-slot" id="thumbSlot"><div class="placeholder" id="thumbPlaceholder">未选择<br/>图片</div></div>
     <div class="uploader-text">
-      <div class="t1">上传一张照片</div>
-      <div class="t2">点击选择，或将图片拖拽到此处。支持 JPG / PNG。</div>
+      <div class="t1" id="uploadTitleText">上传一张照片</div>
+      <div class="t2" id="uploadDescText">点击选择，或将图片拖拽到此处。支持 JPG / PNG。</div>
     </div>
     <input type="file" id="fileInput" accept="image/*" />
     <button class="btn btn-ghost" id="pickBtn">选择图片</button>
   </div>
 
+  <div class="style-picker">
+    <div class="style-picker-head">
+      <span class="label" id="stylePickerLabel">选择要生成的风格</span>
+      <button class="toggle-all" id="toggleAllBtn" type="button">全不选</button>
+    </div>
+    <div class="style-grid" id="styleGrid"></div>
+  </div>
+
   <div class="config-row">
-    <label>后端地址
+    <label><span id="backendLabelText">后端地址</span>
       <input type="text" id="backendUrl" placeholder="https://your-project.vercel.app/api/generate" />
     </label>
   </div>
   <div class="config-row">
-    <label>每种风格张数 <input type="number" id="nPerStyle" value="9" min="1" max="10" /></label>
+    <label><span id="countLabelText">每种风格张数</span> <input type="number" id="nPerStyle" value="9" min="1" max="10" /></label>
   </div>
 
   <div class="action-bar">
-    <button class="btn btn-primary" id="generateBtn" disabled>生成 10 种风格</button>
+    <button class="btn btn-primary" id="generateBtn" disabled>生成</button>
     <span class="status" id="statusText"></span>
   </div>
 
@@ -174,6 +256,125 @@ const STYLES = [
   { name: '中国水墨画', prompt: '将这张照片转换为中国传统水墨画风格，留白、墨色浓淡变化、写意笔法，宣纸质感。' },
 ];
 
+// ============ 多语言文案 ============
+const STYLE_NAMES = {
+  zh: ['吉卜力手绘动画','赛博朋克霓虹','水彩插画','像素风','3D卡通渲染','古典油画','素描线稿','复古胶片','极简扁平插画','中国水墨画'],
+  en: ['Ghibli Hand-drawn Animation','Cyberpunk Neon','Watercolor Illustration','Pixel Art','3D Cartoon Render','Classical Oil Painting','Pencil Sketch','Vintage Film','Minimalist Flat Illustration','Chinese Ink Wash'],
+  vi: ['Hoạt hình vẽ tay Ghibli','Neon Cyberpunk','Tranh màu nước','Nghệ thuật Pixel','Kết xuất hoạt hình 3D','Tranh sơn dầu cổ điển','Phác thảo bút chì','Phim cổ điển','Minh họa phẳng tối giản','Tranh thủy mặc Trung Hoa'],
+  id: ['Animasi Gambar Tangan Ghibli','Neon Cyberpunk','Ilustrasi Cat Air','Seni Piksel','Render Kartun 3D','Lukisan Minyak Klasik','Sketsa Pensil','Film Vintage','Ilustrasi Datar Minimalis','Lukisan Tinta Tiongkok'],
+};
+
+const I18N = {
+  zh: {
+    subtitle: 'LEO 图片设计 · 一键生成十种艺术风格',
+    uploadTitle: '上传一张照片',
+    uploadDesc: '点击选择，或将图片拖拽到此处。支持 JPG / PNG。',
+    thumbPlaceholder: '未选择<br/>图片',
+    pickBtn: '选择图片',
+    stylePickerLabel: '选择要生成的风格',
+    deselectAll: '全不选',
+    selectAll: '全选',
+    backendLabel: '后端地址',
+    countLabel: '每种风格张数',
+    generateBtn: '生成',
+    rollCount: (count, n) => `${count} 卷 · 每卷 ${n} 帧`,
+    needBackend: '请先填写后端地址（部署好的 /api/generate 接口地址）',
+    needStyle: '请至少勾选一种风格',
+    generating: (count, n) => `正在生成，${count} 种风格 × ${n} 张，请耐心等待（可能需要几分钟）...`,
+    allDone: '全部完成。',
+    requestFailed: (msg) => `请求失败：${msg}`,
+    rollWaiting: '等待中',
+    rollGenerating: '生成中...',
+    rollDone: (n) => `完成 · ${n} 帧`,
+    rollFailed: '失败',
+    frameDownload: '下载',
+    frameGenFailed: (msg) => `生成失败：${msg}`,
+    htmlLang: 'zh-CN',
+  },
+  en: {
+    subtitle: 'LEO Image Design · Ten Art Styles in One Click',
+    uploadTitle: 'Upload a Photo',
+    uploadDesc: 'Click to select, or drag and drop an image here. JPG / PNG supported.',
+    thumbPlaceholder: 'No Image<br/>Selected',
+    pickBtn: 'Select Image',
+    stylePickerLabel: 'Select Styles to Generate',
+    deselectAll: 'Deselect All',
+    selectAll: 'Select All',
+    backendLabel: 'Backend URL',
+    countLabel: 'Images per Style',
+    generateBtn: 'Generate',
+    rollCount: (count, n) => `${count} Rolls · ${n} Frames Each`,
+    needBackend: 'Please enter the backend URL first (your deployed /api/generate endpoint)',
+    needStyle: 'Please select at least one style',
+    generating: (count, n) => `Generating ${count} styles × ${n} images each, please wait (this may take a few minutes)...`,
+    allDone: 'All done.',
+    requestFailed: (msg) => `Request failed: ${msg}`,
+    rollWaiting: 'Waiting',
+    rollGenerating: 'Generating...',
+    rollDone: (n) => `Done · ${n} frames`,
+    rollFailed: 'Failed',
+    frameDownload: 'Download',
+    frameGenFailed: (msg) => `Generation failed: ${msg}`,
+    htmlLang: 'en',
+  },
+  vi: {
+    subtitle: 'Thiết kế ảnh LEO · Tạo 10 phong cách nghệ thuật chỉ với một cú nhấp',
+    uploadTitle: 'Tải lên một bức ảnh',
+    uploadDesc: 'Nhấp để chọn, hoặc kéo thả ảnh vào đây. Hỗ trợ JPG / PNG.',
+    thumbPlaceholder: 'Chưa chọn<br/>ảnh',
+    pickBtn: 'Chọn ảnh',
+    stylePickerLabel: 'Chọn phong cách để tạo',
+    deselectAll: 'Bỏ chọn tất cả',
+    selectAll: 'Chọn tất cả',
+    backendLabel: 'Địa chỉ backend',
+    countLabel: 'Số ảnh mỗi phong cách',
+    generateBtn: 'Tạo ảnh',
+    rollCount: (count, n) => `${count} Cuộn · ${n} Khung/cuộn`,
+    needBackend: 'Vui lòng nhập địa chỉ backend trước (endpoint /api/generate đã triển khai)',
+    needStyle: 'Vui lòng chọn ít nhất một phong cách',
+    generating: (count, n) => `Đang tạo ${count} phong cách × ${n} ảnh, vui lòng chờ (có thể mất vài phút)...`,
+    allDone: 'Đã hoàn tất.',
+    requestFailed: (msg) => `Yêu cầu thất bại: ${msg}`,
+    rollWaiting: 'Đang chờ',
+    rollGenerating: 'Đang tạo...',
+    rollDone: (n) => `Hoàn tất · ${n} khung`,
+    rollFailed: 'Thất bại',
+    frameDownload: 'Tải xuống',
+    frameGenFailed: (msg) => `Tạo ảnh thất bại: ${msg}`,
+    htmlLang: 'vi',
+  },
+  id: {
+    subtitle: 'Desain Foto LEO · Buat 10 Gaya Seni dalam Satu Klik',
+    uploadTitle: 'Unggah sebuah foto',
+    uploadDesc: 'Klik untuk memilih, atau seret & lepas gambar di sini. Mendukung JPG / PNG.',
+    thumbPlaceholder: 'Belum ada<br/>gambar dipilih',
+    pickBtn: 'Pilih Gambar',
+    stylePickerLabel: 'Pilih Gaya untuk Dibuat',
+    deselectAll: 'Batalkan Semua',
+    selectAll: 'Pilih Semua',
+    backendLabel: 'URL Backend',
+    countLabel: 'Jumlah Gambar per Gaya',
+    generateBtn: 'Buat',
+    rollCount: (count, n) => `${count} Gulungan · ${n} Bingkai/gulungan`,
+    needBackend: 'Harap isi URL backend terlebih dahulu (endpoint /api/generate yang sudah di-deploy)',
+    needStyle: 'Harap pilih setidaknya satu gaya',
+    generating: (count, n) => `Sedang membuat ${count} gaya × ${n} gambar, mohon tunggu (bisa memakan beberapa menit)...`,
+    allDone: 'Semua selesai.',
+    requestFailed: (msg) => `Permintaan gagal: ${msg}`,
+    rollWaiting: 'Menunggu',
+    rollGenerating: 'Sedang membuat...',
+    rollDone: (n) => `Selesai · ${n} bingkai`,
+    rollFailed: 'Gagal',
+    frameDownload: 'Unduh',
+    frameGenFailed: (msg) => `Gagal membuat: ${msg}`,
+    htmlLang: 'id',
+  },
+};
+
+let currentLang = 'zh';
+function t(key) { return I18N[currentLang][key]; }
+function styleName(i) { return STYLE_NAMES[currentLang][i]; }
+
 let uploadedBase64 = null;
 
 const fileInput = document.getElementById('fileInput');
@@ -185,6 +386,91 @@ const statusText = document.getElementById('statusText');
 const rollsEl = document.getElementById('rolls');
 const backendUrlInput = document.getElementById('backendUrl');
 const nPerStyleInput = document.getElementById('nPerStyle');
+const styleGrid = document.getElementById('styleGrid');
+const toggleAllBtn = document.getElementById('toggleAllBtn');
+const rollCountLabel = document.getElementById('rollCountLabel');
+const langSwitch = document.getElementById('langSwitch');
+const subtitleText = document.getElementById('subtitleText');
+const uploadTitleText = document.getElementById('uploadTitleText');
+const uploadDescText = document.getElementById('uploadDescText');
+const stylePickerLabel = document.getElementById('stylePickerLabel');
+const backendLabelText = document.getElementById('backendLabelText');
+const countLabelText = document.getElementById('countLabelText');
+
+// 风格选中状态，默认全选
+const styleChecked = STYLES.map(() => true);
+
+function renderStylePicker() {
+  styleGrid.innerHTML = STYLES.map((style, i) => `
+    <label class="style-item ${styleChecked[i] ? 'checked' : ''}" data-idx="${i}">
+      <input type="checkbox" ${styleChecked[i] ? 'checked' : ''} data-idx="${i}" />
+      ${styleName(i)}
+    </label>
+  `).join('');
+  updateRollCountLabel();
+}
+
+function updateRollCountLabel() {
+  const count = styleChecked.filter(Boolean).length;
+  const n = Math.min(Math.max(Number(nPerStyleInput.value) || 9, 1), 10);
+  rollCountLabel.textContent = t('rollCount')(count, n);
+}
+
+styleGrid.addEventListener('change', (e) => {
+  if (e.target.type === 'checkbox') {
+    const idx = Number(e.target.dataset.idx);
+    styleChecked[idx] = e.target.checked;
+    e.target.closest('.style-item').classList.toggle('checked', e.target.checked);
+    updateRollCountLabel();
+  }
+});
+
+toggleAllBtn.addEventListener('click', () => {
+  const anyChecked = styleChecked.some(Boolean);
+  const newValue = !anyChecked; // 如果当前有选中，点一下变全不选；否则变全选
+  for (let i = 0; i < styleChecked.length; i++) styleChecked[i] = newValue;
+  toggleAllBtn.textContent = newValue ? t('deselectAll') : t('selectAll');
+  renderStylePicker();
+});
+
+nPerStyleInput.addEventListener('input', updateRollCountLabel);
+
+function applyLanguage(lang) {
+  currentLang = lang;
+  document.documentElement.lang = t('htmlLang');
+  subtitleText.textContent = t('subtitle');
+  uploadTitleText.textContent = t('uploadTitle');
+  uploadDescText.textContent = t('uploadDesc');
+  const placeholder = document.getElementById('thumbPlaceholder');
+  if (placeholder) placeholder.innerHTML = t('thumbPlaceholder');
+  pickBtn.textContent = t('pickBtn');
+  stylePickerLabel.textContent = t('stylePickerLabel');
+  backendLabelText.textContent = t('backendLabel');
+  countLabelText.textContent = t('countLabel');
+  generateBtn.textContent = t('generateBtn');
+  const anyChecked = styleChecked.some(Boolean);
+  toggleAllBtn.textContent = anyChecked ? t('deselectAll') : t('selectAll');
+  renderStylePicker();
+  langSwitch.querySelectorAll('button').forEach(btn => {
+    btn.classList.toggle('active', btn.dataset.lang === lang);
+  });
+}
+
+langSwitch.addEventListener('click', (e) => {
+  const btn = e.target.closest('button[data-lang]');
+  if (btn) applyLanguage(btn.dataset.lang);
+});
+
+applyLanguage('zh');
+
+function toRoman(num) {
+  const map = [[10,'X'],[9,'IX'],[5,'V'],[4,'IV'],[1,'I']];
+  let res = '';
+  for (const [val, sym] of map) {
+    while (num >= val) { res += sym; num -= val; }
+  }
+  return res;
+}
 
 pickBtn.addEventListener('click', () => fileInput.click());
 dropZone.addEventListener('click', (e) => { if (e.target === dropZone) fileInput.click(); });
@@ -214,9 +500,9 @@ function handleFile(file) {
   reader.readAsDataURL(file);
 }
 
-function buildEmptyRolls() {
+function buildEmptyRolls(indices) {
   rollsEl.innerHTML = '';
-  STYLES.forEach((style, i) => {
+  indices.forEach((styleIdx, i) => {
     const n = Math.min(Math.max(Number(nPerStyleInput.value) || 9, 1), 10);
     const roll = document.createElement('div');
     roll.className = 'roll';
@@ -224,10 +510,10 @@ function buildEmptyRolls() {
     roll.innerHTML = `
       <div class="roll-head">
         <div class="roll-title">
-          <span class="roll-index">${String(i+1).padStart(2,'0')}</span>
-          <span class="roll-name">${style.name}</span>
+          <span class="roll-index">${toRoman(i+1)}</span>
+          <span class="roll-name">${styleName(styleIdx)}</span>
         </div>
-        <span class="roll-frame-count" id="roll-status-${i}">等待中</span>
+        <span class="roll-frame-count" id="roll-status-${i}">${t('rollWaiting')}</span>
       </div>
       <div class="sprocket-row">${new Array(20).fill('<span class="sprocket"></span>').join('')}</div>
       <div class="contact-sheet" id="sheet-${i}">
@@ -255,39 +541,45 @@ function fillFrame(i, f, base64) {
   frame.innerHTML = `
     <img src="data:image/png;base64,${base64}" />
     <span class="frame-num">${String(f+1).padStart(2,'0')}/${String(n).padStart(2,'0')}</span>
-    <a class="frame-download" download="style${i+1}_frame${f+1}.png" href="data:image/png;base64,${base64}">下载</a>
+    <a class="frame-download" download="style${i+1}_frame${f+1}.png" href="data:image/png;base64,${base64}">${t('frameDownload')}</a>
   `;
 }
 
 function errorRoll(i, msg) {
   const sheet = document.getElementById(`sheet-${i}`);
-  sheet.innerHTML = `<div class="frame errored" style="grid-column:1/-1;aspect-ratio:auto;padding:20px;">生成失败：${msg}</div>`;
-  setRollStatus(i, '失败');
+  sheet.innerHTML = `<div class="frame errored" style="grid-column:1/-1;aspect-ratio:auto;padding:20px;">${t('frameGenFailed')(msg)}</div>`;
+  setRollStatus(i, t('rollFailed'));
 }
 
 generateBtn.addEventListener('click', async () => {
   if (!uploadedBase64) return;
   const backendUrl = backendUrlInput.value.trim();
   if (!backendUrl) {
-    alert('请先填写后端地址（部署好的 /api/generate 接口地址）');
+    alert(t('needBackend'));
+    return;
+  }
+  const selectedIndices = STYLES.map((_, i) => i).filter(i => styleChecked[i]);
+  if (selectedIndices.length === 0) {
+    alert(t('needStyle'));
     return;
   }
   const n = Math.min(Math.max(Number(nPerStyleInput.value) || 9, 1), 10);
+  const payloadStyles = selectedIndices.map(i => ({ name: styleName(i), prompt: STYLES[i].prompt }));
 
   generateBtn.disabled = true;
-  statusText.textContent = '正在生成，10 种风格 × ' + n + ' 张，请耐心等待（可能需要几分钟）...';
-  buildEmptyRolls();
-  STYLES.forEach((_, i) => setRollStatus(i, '生成中...'));
+  statusText.textContent = t('generating')(selectedIndices.length, n);
+  buildEmptyRolls(selectedIndices);
+  selectedIndices.forEach((_, i) => setRollStatus(i, t('rollGenerating')));
 
   try {
     const resp = await fetch(backendUrl, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ imageBase64: uploadedBase64, styles: STYLES, n }),
+      body: JSON.stringify({ imageBase64: uploadedBase64, styles: payloadStyles, n }),
     });
     if (!resp.ok) {
-      const t = await resp.text();
-      throw new Error(t.slice(0, 200));
+      const errText = await resp.text();
+      throw new Error(errText.slice(0, 200));
     }
     const data = await resp.json();
     data.results.forEach((r, i) => {
@@ -296,11 +588,11 @@ generateBtn.addEventListener('click', async () => {
         return;
       }
       r.images.forEach((b64, f) => fillFrame(i, f, b64));
-      setRollStatus(i, `完成 · ${r.images.length} 帧`);
+      setRollStatus(i, t('rollDone')(r.images.length));
     });
-    statusText.textContent = '全部完成。';
+    statusText.textContent = t('allDone');
   } catch (err) {
-    statusText.textContent = '请求失败：' + err.message;
+    statusText.textContent = t('requestFailed')(err.message);
   } finally {
     generateBtn.disabled = false;
   }
